@@ -3,6 +3,9 @@ const bcrypt = require('bcryptjs');
 
 const db = require('../config/dbConnection');
 
+const randomstring = require('randomstring');
+const sendMail  = require('../helpers/sendMail')
+
 const register = (req, res) => {
     const errors = validationResult(req);
     console.log("register controller")
@@ -38,7 +41,20 @@ const register = (req, res) => {
                                         msg: err
                                     });
                                 }
-                                return res.status(500).send({
+
+                                let mailSubject ='Mail Verification';
+                                const randomToken = randomstring.generate();
+                                let contant = '<p> Hi '+req.body.name+ ', \ Please <a href="http://localhost:3000/mail-verification?token='+randomToken+'" >verify</a>Your Mail';
+                                sendMail(req.body.email,mailSubject, contant)
+
+                                db.query(`UPDATE users set token=? where email =?`,[randomToken,req.body.email], function(error, result){
+                                    if(error){
+                                        return res.status(400).send({
+                                            msg: error.message
+                                        })
+                                    }
+                                })
+                                return res.status(200).send({
                                     msg: 'The user has been register with us!'
                                 });
                             }
