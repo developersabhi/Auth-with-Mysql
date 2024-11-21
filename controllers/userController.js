@@ -139,4 +139,18 @@ const login =(req, res) => {
         }
     )
 }
-module.exports = { register, verifyMail, login }
+
+const getUser =(req, res) =>{
+    const authToken = req.headers.authorization.split(' ')[1];)
+    const decode= jwt.verify(authToken,JWT_SECRET);
+
+
+    db.query(`
+            SELECT * FROM users WHERE id=?
+        `, decode.id, function(error, result, fields){
+            if(error) throw error;
+
+            return res.status(200).send({ success: true, data: result[0], message: 'Fetch Successfully' });
+        })
+}
+module.exports = { register, verifyMail, login, getUser }

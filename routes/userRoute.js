@@ -30,4 +30,6 @@ router.post('/register',upload.single('image'), signUpValidation,userController.
 
 router.post('/login',loginValidation,userController.login)
 
+router.get('/get-user',userController.getUser)
+
 module.exports = router;
