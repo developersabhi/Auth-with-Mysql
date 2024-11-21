@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 require('./config/dbConnection')
 
 const userRouter  = require('./routes/userRoute.js')
+const webRouter  = require('./routes/webRoute.js')
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true})) // what is work of extended tr
 app.use(cors());
 
 app.use('/api',userRouter)
+app.use('/',webRouter)
 
 //error  handling
 
