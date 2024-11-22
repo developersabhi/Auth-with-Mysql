@@ -153,4 +153,45 @@ const getUser =(req, res) =>{
             return res.status(200).send({ success: true, data: result[0], message: 'Fetch Successfully' });
         })
 }
-module.exports = { register, verifyMail, login, getUser }
+
+const forgetPassword = (req, res) => {
+    const errors = validationResult(req);
+
+    if(!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+    }
+
+    var email = req.body.email;
+    db.query(`
+            SELECT * FROM users WHERE email= ? limit 1
+        `, email, function(error, result, fields){
+            if(error) {
+                return res.status(400).json({ message:error});
+            }
+
+            if(result.length > 0) {
+
+                let mailSubject = 'Forget Password';
+                const randomString = randomstring.generate();
+                let content ='<p>Hii, '+result[0].name+' \
+                Please <a href= "http://localhost:3000/api/reset-password?token='+randomString+'">Click Here</a> to Reset your Password <p>\
+                ';
+
+                sendMail(email, mailSubject, content);
+
+                db.query(`
+                        DELETE FROM password_resets WHERE email = ${db.escape(result[0].email)}
+                    `);
+                db.query(`
+                        INSERT INTO password_resets (email, token) VALUES (${db.escape(result[0].email)}, '${randomString}')
+                    `);
+                    return res.status(200).send({
+                         message: "Mail sent Successfully for Reset Password"
+                    })
+            };
+            return res.status(200).send({
+                message: "Mail doesn't exists"
+            })
+        });
+}
+module.exports = { register, verifyMail, login, getUser, forgetPassword }

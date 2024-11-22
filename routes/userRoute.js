@@ -22,16 +22,18 @@ const upload =multer({
     fileFilter:filefilter
 });
 
-const { signUpValidation, loginValidation } = require('../helpers/validation')
+const { signUpValidation, loginValidation, forgetValidation } = require('../helpers/validation')
 
 const userController = require('../controllers/userController')
 
 const auth =require('../middleware/auth')
 
-router.post('/register',upload.single('image'), signUpValidation,userController.register)
+router.post('/register',upload.single('image'), signUpValidation,userController.register);
 
-router.post('/login',loginValidation,userController.login)
+router.post('/login',loginValidation,userController.login);
 
-router.get('/get-user',auth.isAuthorize,userController.getUser)
+router.get('/get-user',auth.isAuthorize,userController.getUser);
+
+router.post('/forget-password', forgetValidation, userController.forgetPassword);
 
 module.exports = router;
