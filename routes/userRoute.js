@@ -36,4 +36,6 @@ router.get('/get-user',auth.isAuthorize,userController.getUser);
 
 router.post('/forget-password', forgetValidation, userController.forgetPassword);
 
+// router.post('/forget-password', forgetValidation, userController.forgetPassword);
+
 module.exports = router;

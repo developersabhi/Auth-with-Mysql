@@ -155,6 +155,7 @@ const getUser =(req, res) =>{
 }
 
 const forgetPassword = (req, res) => {
+    console.log(158)
     const errors = validationResult(req);
 
     if(!errors.isEmpty()) {
@@ -174,7 +175,7 @@ const forgetPassword = (req, res) => {
                 let mailSubject = 'Forget Password';
                 const randomString = randomstring.generate();
                 let content ='<p>Hii, '+result[0].name+' \
-                Please <a href= "http://localhost:3000/api/reset-password?token='+randomString+'">Click Here</a> to Reset your Password <p>\
+                Please <a href= "http://localhost:3000/reset-password?token='+randomString+'">Click Here</a> to Reset your Password <p>\
                 ';
 
                 sendMail(email, mailSubject, content);
@@ -189,9 +190,60 @@ const forgetPassword = (req, res) => {
                          message: "Mail sent Successfully for Reset Password"
                     })
             };
-            return res.status(200).send({
+            return res.status(402).send({
                 message: "Mail doesn't exists"
             })
         });
 }
-module.exports = { register, verifyMail, login, getUser, forgetPassword }
+
+const resetPasswordLoad = (req, res) => {
+    try {
+        var token = req.query.token;
+        console.log(token)
+        if(token == undefined) {
+            res.render('404');
+        }
+        db.query(`
+                SELECT * FROM password_resets where token= ? limit 1
+            `, token, function(error, result, fields){
+                if(error){
+                    console.log(error)
+                }
+                if( result.length >0) {
+                    db.query(`
+                            SELECT * FROM users WHERE email = ? limit 1
+                        `, result[0].email, function(error, result, fields){
+                            if(error) {
+                                console.log(error)
+                            }
+                            res.render('reset-password', { user: result[0]})
+                        });
+                }else {
+                    res.render('404');
+                }
+            })
+    } catch (error) {
+        console.log(error.message)
+    }
+}
+
+const resetPassword = (req, res) => {
+    if(req.body.password != req.body.confirm_password){
+        res.render('reset-password',{ error_message: 'Password not matching', user:{id:req.body.user_id, email:req.body.email} });
+    }
+    bcrypt.hash(req.body.confirm_password,10, (err, hash)=>{
+        if(err) {
+            console.log(err)
+        }
+        db.query(`
+                DELETE FROM password_resets WHERE email ='${req.body.email}'
+            `);
+        db.query(`
+                UPDATE users SET password ='${ hash }'WHERE id ='${req.body.user_id}'
+            `);
+
+             res.render('message', {message: 'Password Reset Successfully'})
+    })
+}
+
+module.exports = { register, verifyMail, login, getUser, forgetPassword, resetPasswordLoad, resetPassword }
